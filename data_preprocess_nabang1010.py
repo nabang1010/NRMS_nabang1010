@@ -12,6 +12,16 @@ with open("config.yaml", "r") as f:
 # def behaviors_file_process(source, target, user2int_path):
 
 
+def row_process(row, category2int):
+    new_row = [
+        row.id,
+        row.category,
+        category2int[row.category] if row.category in category2int else 0,
+        category2int[row.subcategory]
+        # ------------------------------------------------------------------------------
+    ]
+
+
 def behaviors_file_process(source, target, user2int_path):
     print("Processing", source)
     # Read behaviors.tsv
@@ -100,9 +110,14 @@ def news_file_process(
     )
     df_news.titles_entities.fillna("[]", inplace=True)
     df_news.abstract_entities.fillna("[]", inplace=True)
-    df_news.fillna(' ', inplace=True)
-    
-    
+    df_news.fillna(" ", inplace=True)
+
+    if mode == "train":
+        category2int = {}
+        word2int = {}
+        word2freq = {}
+        entity2int = {}
+        entity2freq = {}
 
 
 if __name__ == "__main__":
@@ -112,8 +127,8 @@ if __name__ == "__main__":
     val_dir = "val"
     test_dir = "test"
 
-    source = os.path.join(DATA_RAW, "behaviors.tsv")
-    target = os.path.join(DATA_DIR, train_dir, "behaviors.tsv")
+    source_behaviors = os.path.join(DATA_RAW, "behaviors.tsv")
+    target_behaviors = os.path.join(DATA_DIR, train_dir, "behaviors.tsv")
     user2int_path = os.path.join(DATA_DIR, train_dir, "user2int.tsv")
 
-    behaviors_file_process(source, target, user2int_path)
+    behaviors_file_process(source_behaviors, target_behaviors, user2int_path)
