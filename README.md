@@ -1,2 +1,7 @@
-# NRMS_nabang1010
-NRMS - Neural News Recommendation with Multi-Head Self-Attention
+# NRMS - Neural News Recommendation with Multi-Head Self-Attention
+----
+
+***@nabang1010***
+
+## To Do
+
