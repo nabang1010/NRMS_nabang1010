@@ -2,6 +2,8 @@ import pandas as pd
 from tqdm import tqdm
 import random
 import yaml
+import os
+
 
 with open("config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)

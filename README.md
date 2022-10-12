@@ -35,7 +35,12 @@ python news_preprocess.py
 ```console
 python generate_word_embedding.py
 ```
-
 ### Generate entity embedding
+
+## Training
+
+
+
+
 ## To Do
 

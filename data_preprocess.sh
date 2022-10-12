@@ -1,0 +1,3 @@
+python behaviors_preprocess.py
+python news_preprocess.py
+python generate_word_embedding.py
