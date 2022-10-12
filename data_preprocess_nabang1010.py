@@ -4,6 +4,9 @@ import random
 import yaml
 import os
 import csv
+import json
+from nltk.tokenize import word_tokenize
+import swifter
 
 
 with open("config.yaml", "r") as f:
@@ -12,14 +15,62 @@ with open("config.yaml", "r") as f:
 # def behaviors_file_process(source, target, user2int_path):
 
 
-def row_process(row, category2int):
+def row_process(row, category2int, entity2int, word2int):
     new_row = [
         row.id,
-        row.category,
         category2int[row.category] if row.category in category2int else 0,
-        category2int[row.subcategory]
-        # ------------------------------------------------------------------------------
+        category2int[row.subcategory] if row.subcategory in category2int else 0,
+        [0] * config["BASE_CONFIG"]["num_words_title"],
+        [0] * config["BASE_CONFIG"]["num_words_abstract"],
+        [0] * config["BASE_CONFIG"]["num_words_title"],
+        [0] * config["BASE_CONFIG"]["num_words_abstract"],
     ]
+    local_entity_map = {}
+    for e in json.loads(row.title_entities):
+        if (
+            e["Confidence"] > config["BASE_CONFIG"]["entity_confidence_threshold"]
+            and e["WikidataId"] in entity2int
+        ):
+            for x in " ".join(e["SurfaceForms"]).lower().split():
+                local_entity_map[x] = entity2int[e["WikidataId"]]
+    for e in json.loads(row.abstract_entities):
+        if (
+            e["Confidence"] > config["BASE_CONFIG"]["entity_confidence_threshold"]
+            and e["WikidataId"] in entity2int
+        ):
+            for x in " ".join(e["SurfaceForms"]).lower().split():
+                local_entity_map[x] = entity2int[e["WikidataId"]]
+
+    try:
+        for i, w in enumerate(word_tokenize(row.title.lower())):
+            if w in word2int:
+                new_row[3][i] = word2int[w]
+                if w in local_entity_map:
+                    new_row[5][i] = local_entity_map[w]
+    except IndexError:
+        pass
+
+    try:
+        for i, w in enumerate(word_tokenize(row.abstract.lower())):
+            if w in word2int:
+                new_row[4][i] = word2int[w]
+                if w in local_entity_map:
+                    new_row[6][i] = local_entity_map[w]
+    except IndexError:
+        pass
+
+    return pd.Series(
+        new_row,
+        index=[
+            "id",
+            "category",
+            "subcategory",
+            "title",
+            "abstract",
+            "title_entities",
+            "abstract_entities",
+        ],
+    )
 
 
 def behaviors_file_process(source, target, user2int_path):
