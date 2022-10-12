@@ -75,6 +75,7 @@ def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
 
 
 if __name__ == "__main__":
+    
     DATA_RAW = "/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/"
     DATA_DIR = "./DATA_nabang1010"
 

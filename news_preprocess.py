@@ -5,6 +5,7 @@ import csv
 import os
 import json
 import argparse
+import swifter
 
 with open("config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
@@ -71,7 +72,7 @@ def row_process(row, category2int, entity2int, word2int):
 def news_file_process(
     source_news, target_news, category2int_path, word2int_path, entity2int_path, mode
 ):
-
+    print("=======================================================================")
     print("Processing", source_news)
 
     df_news = pd.read_table(
@@ -89,11 +90,12 @@ def news_file_process(
             "abstract_entities",
         ],
     )
-    df_news.titles_entities.fillna("[]", inplace=True)
+    df_news.title_entities.fillna("[]", inplace=True)
     df_news.abstract_entities.fillna("[]", inplace=True)
     df_news.fillna(" ", inplace=True)
 
     if mode == "train":
+        print(">>>>>> Processing train data <<<<<<")
         category2int = {}
         word2int = {}
         word2freq = {}
@@ -149,28 +151,35 @@ def news_file_process(
             if v >= config["BASE_CONFIG"]["entity_freq_threshold"]:
                 entity2int[k] = len(entity2int) + 1
 
-        parsed_news = df_news.swifter.apply(row_process, axis=1)
-
+        parsed_news = df_news.swifter.apply(
+            row_process, axis=1, args=(category2int, entity2int, word2int)
+        )
+        print(">>>>>> Saving category2int <<<<<<")
         pd.DataFrame(category2int.items(), columns=["category", "int"]).to_csv(
             category2int_path, sep="\t", index=False
         )
-
+        print(">>>>>> Saving word2int <<<<<<")
         pd.DataFrame(word2int.items(), columns=["word", "int"]).to_csv(
             word2int_path, sep="\t", index=False
         )
+        print(">>>>>> Saving entity2int <<<<<<")
         pd.DataFrame(entity2int.items(), columns=["entity", "int"]).to_csv(
             entity2int_path, sep="\t", index=False
         )
 
     elif mode == "test":
+        print(">>>>>> Processing train", mode, " <<<<<<")
         category2int = dict(pd.read_table(category2int_path).values.tolist())
 
         word2int = dict(pd.read_table(word2int_path, na_filter=False).values.tolist())
 
         entity2int = dict(pd.read_table(entity2int_path).values.tolist())
 
-        parsed_news = df_news.swifter.apply(row_process, axis=1)
+        parsed_news = df_news.swifter.apply(
+            row_process, axis=1, args=(category2int, entity2int, word2int)
+        )
 
+        print(">>>>>> Saving news_preprocessed <<<<<<")
         parsed_news.to_csv(target_news, sep="\t", index=False)
 
     else:
@@ -178,45 +187,52 @@ def news_file_process(
 
 
 if __name__ == "__main__":
+    current_path = os.path.dirname(os.path.abspath(__file__))
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--source_news", type=str, default="data/news.tsv", help="source news file",
-            
-    
-    
-    
-    
-    
-    
-    
-    
-    DATA_RAW = "/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/"
-    DATA_DIR = "./DATA_nabang1010"
-
-    train_dir = "train"
-    val_dir = "val"
-    test_dir = "test"
-
-    source_news = os.path.join(DATA_RAW, "news.tsv")
-    target_news = os.path.join(DATA_DIR, train_dir, "news_preprocessed.tsv")
-    category2int_path = os.path.join(DATA_DIR, train_dir, "category2int.tsv")
-    word2int_path = os.path.join(DATA_DIR, train_dir, "word2int.tsv")
-    entity2int_path = os.path.join(DATA_DIR, train_dir, "entity2int.tsv")
-
-    news_file_process(
-        source_news,
-        target_news,
-        category2int_path,
-        word2int_path,
-        entity2int_path,
-        mode="train",
+        "--source_news",
+        type=str,
+        default="/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/news.tsv",
+        help="source news.tsv file path",
     )
+    parser.add_argument(
+        "--target_news",
+        type=str,
+        default="train/news_preprocessed.tsv",
+        help="write target news_preprocessed.tsv file path",
+    )
+    parser.add_argument(
+        "--category2int_path",
+        type=str,
+        default="train/category2int.tsv",
+        help="write category2int file path",
+    )
+    parser.add_argument(
+        "--word2int_path",
+        type=str,
+        default="train/word2int.tsv",
+        help="write word2int.tsv file path",
+    )
+    parser.add_argument(
+        "--entity2int_path",
+        type=str,
+        default="train/entity2int.tsv",
+        help="write entity2int.tsv file path",
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="train",
+        help="mode: train or test",
+    )
+    args = parser.parse_args()
 
     news_file_process(
-        source_news,
-        target_news,
-        category2int_path,
-        word2int_path,
-        entity2int_path,
-        mode="test",
+        os.path.join(current_path, args.source_news),
+        os.path.join(current_path, args.target_news),
+        os.path.join(current_path, args.category2int_path),
+        os.path.join(current_path, args.word2int_path),
+        os.path.join(current_path, args.entity2int_path),
+        args.mode,
     )
