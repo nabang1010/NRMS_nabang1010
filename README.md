@@ -13,7 +13,7 @@
 
 
 ```console
-python behaviros_preprocess.py
+python behaviors_preprocess.py
 ```
 
 
