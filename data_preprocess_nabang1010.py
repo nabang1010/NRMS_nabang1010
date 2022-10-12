@@ -7,6 +7,7 @@ import csv
 import json
 from nltk.tokenize import word_tokenize
 import swifter
+import numpy as np
 
 # ====================================================================================
 
@@ -77,11 +78,11 @@ def row_process(row, category2int, entity2int, word2int):
 # ====================================================================================
 
 
-def behaviors_file_process(source, target, user2int_path):
-    print("Processing", source)
+def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
+    print("Processing", source_behaviors)
     # Read behaviors.tsv
     df_behaviors = pd.read_table(
-        source,
+        source_behaviors,
         header=None,
         names=["impression_id", "user", "time", "clicked_news", "impressions"],
     )
@@ -135,7 +136,7 @@ def behaviors_file_process(source, target, user2int_path):
         ).tolist()
     )
     df_behaviors.to_csv(
-        target,
+        target_behaviors,
         sep="\t",
         index=False,
         columns=["user", "clicked_news", "candidate_news", "clicked"],
@@ -146,13 +147,13 @@ def behaviors_file_process(source, target, user2int_path):
 
 
 def news_file_process(
-    source, target, category2int_path, word2int_path, entity2int_path, mode
+    source_news, target_news, category2int_path, word2int_path, entity2int_path, mode
 ):
 
-    print("Processing", source)
+    print("Processing", source_news)
 
     df_news = pd.read_table(
-        source,
+        source_news,
         header=None,
         usecols=[0, 1, 2, 3, 4, 6, 7],
         quoting=csv.QUOTE_NONE,
@@ -248,7 +249,7 @@ def news_file_process(
 
         parsed_news = df_news.swifter.apply(row_process, axis=1)
 
-        parsed_news.to_csv(target, sep="\t", index=False)
+        parsed_news.to_csv(target_news, sep="\t", index=False)
 
     else:
         raise ValueError("mode must be train or test")
@@ -256,6 +257,13 @@ def news_file_process(
 
 # ====================================================================================
 
+
+def generate_embedding(source_embedding, targe_embedding, word2int_path):
+
+    print("Generating embedding")
+
+    word2int = dict(pd.read_table(word2int_path, na_filter=False).values.tolist())
+    
 
 # ====================================================================================
 
