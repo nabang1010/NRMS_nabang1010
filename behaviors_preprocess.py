@@ -3,7 +3,7 @@ from tqdm import tqdm
 import random
 import yaml
 import os
-
+import argparse
 
 with open("config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
@@ -37,7 +37,7 @@ def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
 
     for row in df_behaviors.itertuples():
         df_behaviors.at[row.Index, "user"] = user2int[row.user]
-    for row in tqdm(df_behaviors.itertuples(), desc="Balancing data"):
+    for row in tqdm(df_behaviors.itertuples()):
         positive = iter([x for x in row.impressions if x.endswith("1")])
         negative = [x for x in row.impressions if x.endswith("0")]
         random.shuffle(negative)
@@ -75,14 +75,28 @@ def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
 
 
 if __name__ == "__main__":
-    
-    DATA_RAW = "/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/"
-    DATA_DIR = "./DATA_nabang1010"
 
-    train_dir = "train"
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--source_behaviors",
+        type=str,
+        default="/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/behaviors.tsv",
+        help="source behaviors.tsv file path",
+    )
+    parser.add_argument(
+        "--target_behaviors",
+        type=str,
+        default="DATA_nabang1010/train/behaviors_preprocessed.tsv",
+        help="write target behaviors_preprocessed.tsv file path",
+    )
+    parser.add_argument(
+        "--user2int_path",
+        type=str,
+        default="DATA_nabang1010/train/user2int.tsv",
+        help="write user2int.tsv file path",
+    )
+    args = parser.parse_args()
 
-    source_behaviors = os.path.join(DATA_RAW, "behaviors.tsv")
-    target_behaviors = os.path.join(DATA_DIR, train_dir, "behaviors_preprocessed.tsv")
-    user2int_path = os.path.join(DATA_DIR, train_dir, "user2int.tsv")
-
-    behaviors_file_process(source_behaviors, target_behaviors, user2int_path)
+    behaviors_file_process(
+        args.source_behaviors, args.target_behaviors, args.user2int_path
+    )

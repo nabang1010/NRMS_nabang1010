@@ -154,6 +154,7 @@ def news_file_process(
         parsed_news = df_news.swifter.apply(
             row_process, axis=1, args=(category2int, entity2int, word2int)
         )
+        parsed_news.to_csv(target_news, sep="\t", index=False)
         print(">>>>>> Saving category2int <<<<<<")
         pd.DataFrame(category2int.items(), columns=["category", "int"]).to_csv(
             category2int_path, sep="\t", index=False
@@ -187,7 +188,7 @@ def news_file_process(
 
 
 if __name__ == "__main__":
-    current_path = os.path.dirname(os.path.abspath(__file__))
+    # current_path = os.path.dirname(os.path.abspath(__file__))
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -229,10 +230,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     news_file_process(
-        os.path.join(current_path, args.source_news),
-        os.path.join(current_path, args.target_news),
-        os.path.join(current_path, args.category2int_path),
-        os.path.join(current_path, args.word2int_path),
-        os.path.join(current_path, args.entity2int_path),
+        os.path.join(args.source_news),
+        os.path.join(args.target_news),
+        os.path.join(args.category2int_path),
+        os.path.join(args.word2int_path),
+        os.path.join(args.entity2int_path),
         args.mode,
     )
