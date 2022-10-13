@@ -1,5 +1,8 @@
+[]()
+
 # NRMS - Neural News Recommendation with Multi-Head Self-Attention
-----
+
+---
 
 ***@nabang1010***
 
@@ -14,15 +17,11 @@ sh data_preprocess.sh
 * input: `behaviors.tsv`
 * output: `behaviors_preprocessed.tsv`, `user2int.tsv`
 
-
-
 ```console
 python data_preprocess/behaviors_preprocess.py --source_behaviors ../../DATA/train_small/behaviors.tsv \
                                                 --target_behaviors DATA_nabang1010/train/behaviors_preprocessed.tsv \
                                                 --user2int_path DATA_nabang1010/train/user2int.tsv \
 ```
-
-
 
 ### News tsv file preprocess
 
@@ -48,6 +47,7 @@ python data_preprocess/generate_word_embedding.py --pretrained_embedding ../../D
                                     --word2int_path DATA_nabang1010/train/word2int.tsv \
                                     --target_embedding DATA_nabang1010/train/pretrained_word_embedding.npy
 ```
+
 ### Generate entity embedding
 
 * input: `entity_embedding.vec`, `entity2int.tsv`
@@ -62,8 +62,7 @@ python data_preprocess/generate_entity_embedding.py --source_entity_embedding ..
 
 ## Training
 
-
-
-
 ## To Do
+----
+## Reference
 
