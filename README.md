@@ -1,10 +1,7 @@
-[]()
-
 # NRMS - Neural News Recommendation with Multi-Head Self-Attention
 
 ---
 
-***@nabang1010***
 
 ## Data Preprocess
 
@@ -63,6 +60,19 @@ python data_preprocess/generate_entity_embedding.py --source_entity_embedding ..
 ## Training
 
 ## To Do
-----
+
+* [X] behaviors.tsv preprocess
+* [X] news.tsv preprocess
+* [X] generate word embedding
+* [X] generate entity embedding
+* [ ] recode dataset class
+* [ ] recode model
+* [ ] recode train
+* [ ] recode test
+* [ ] recode eval
+
+---
+
 ## Reference
 
+* [yusanshi](https://github.com/yusanshi)/**[news-recommendation](https://github.com/yusanshi/news-recommendation)**
