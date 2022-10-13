@@ -65,8 +65,11 @@ python data_preprocess/generate_entity_embedding.py --source_entity_embedding ..
 * [X] news.tsv preprocess
 * [X] generate word embedding
 * [X] generate entity embedding
-* [ ] recode dataset class
-* [ ] recode model
+* [X] recode dataset class
+* [ ] recode attention
+* [ ] recode self-attention
+* [ ] recode multi-head self-attention
+* [ ] recode NRMS model
 * [ ] recode train
 * [ ] recode test
 * [ ] recode eval
