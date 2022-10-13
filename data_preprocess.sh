@@ -21,6 +21,8 @@ python news_preprocess.py --source_news ../../DATA/dev_small/news.tsv \
                             --mode test
 
 
-python generate_word_embedding.py 
+python generate_word_embedding.py --pretrained_embedding ../../DATA/glove/glove.840B.300d.txt \
+                                    --word2int_path DATA_nabang1010/train/word2int.tsv \
+                                    --target_embedding DATA_nabang1010/train/pretrained_word_embedding.npy
 
 
