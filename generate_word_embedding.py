@@ -31,9 +31,13 @@ def generate_word_embedding(pretrained_embedding, word2int_path, target_embeddin
     merged.set_index("int", inplace=True)
 
     missed_index = np.setdiff1d(np.arange(len(word2int) + 1), merged.index.values)
+
     missed_embedding = pd.DataFrame(
-        data=np.random.normal(size=(len(missed_index), config.word_embedding_dim))
+        data=np.random.normal(
+            size=(len(missed_index), config["BASE_CONFIG"]["word_embedding_dim"])
+        )
     )
+
     missed_embedding["int"] = missed_index
     missed_embedding.set_index("int", inplace=True)
 
@@ -47,7 +51,7 @@ def generate_word_embedding(pretrained_embedding, word2int_path, target_embeddin
     )
 
 
-if __name__ == "main":
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
