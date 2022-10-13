@@ -10,6 +10,7 @@ with open("config.yaml", "r") as f:
 
 
 def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
+    print("=======================================================================")
     print("Processing", source_behaviors)
     # Read behaviors.tsv
     df_behaviors = pd.read_table(
@@ -31,6 +32,7 @@ def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
         if row.user not in user2int:
             user2int[row.user] = len(user2int) + 1
     # write user2int to file
+    print(">>>>>> Saving user2int.tsv <<<<<<")
     pd.DataFrame(user2int.items(), columns=["user", "int"]).to_csv(
         user2int_path, sep="\t", index=False
     )
@@ -66,6 +68,7 @@ def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
             )
         ).tolist()
     )
+    print(">>>>>> Saving behaviors_preprocessed.tsv <<<<<<")
     df_behaviors.to_csv(
         target_behaviors,
         sep="\t",
@@ -100,3 +103,9 @@ if __name__ == "__main__":
     behaviors_file_process(
         args.source_behaviors, args.target_behaviors, args.user2int_path
     )
+
+
+
+
+
+

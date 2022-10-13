@@ -21,5 +21,6 @@ python news_preprocess.py --source_news ../../DATA/dev_small/news.tsv \
                             --mode test
 
 
+python generate_word_embedding.py 
 
 

@@ -95,7 +95,7 @@ def news_file_process(
     df_news.fillna(" ", inplace=True)
 
     if mode == "train":
-        print(">>>>>> Processing train data <<<<<<")
+        print("----------------- Processing train data -----------------")
         category2int = {}
         word2int = {}
         word2freq = {}
@@ -154,22 +154,24 @@ def news_file_process(
         parsed_news = df_news.swifter.apply(
             row_process, axis=1, args=(category2int, entity2int, word2int)
         )
+        print(">>>>>> Saving behaviors_preprocessed.tsv <<<<<<")
         parsed_news.to_csv(target_news, sep="\t", index=False)
-        print(">>>>>> Saving category2int <<<<<<")
+
+        print(">>>>>> Saving category2int.tsv <<<<<<")
         pd.DataFrame(category2int.items(), columns=["category", "int"]).to_csv(
             category2int_path, sep="\t", index=False
         )
-        print(">>>>>> Saving word2int <<<<<<")
+        print(">>>>>> Saving word2int.tsv <<<<<<")
         pd.DataFrame(word2int.items(), columns=["word", "int"]).to_csv(
             word2int_path, sep="\t", index=False
         )
-        print(">>>>>> Saving entity2int <<<<<<")
+        print(">>>>>> Saving entity2int.tsv <<<<<<")
         pd.DataFrame(entity2int.items(), columns=["entity", "int"]).to_csv(
             entity2int_path, sep="\t", index=False
         )
 
     elif mode == "test":
-        print(">>>>>> Processing train", mode, " <<<<<<")
+        print("----------------- Processing", mode, "data -----------------")
         category2int = dict(pd.read_table(category2int_path).values.tolist())
 
         word2int = dict(pd.read_table(word2int_path, na_filter=False).values.tolist())
@@ -180,7 +182,7 @@ def news_file_process(
             row_process, axis=1, args=(category2int, entity2int, word2int)
         )
 
-        print(">>>>>> Saving news_preprocessed <<<<<<")
+        print(">>>>>> Saving news_preprocessed.tsv <<<<<<")
         parsed_news.to_csv(target_news, sep="\t", index=False)
 
     else:
