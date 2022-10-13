@@ -29,7 +29,7 @@ def generate_entity_embedding(
     for row in merged_df.itertuples(index=False):
         entity_embedding_transformed[row.int] = row.vector
 
-    print(">>>>>> Saving word_embedding.npy <<<<<<")
+    print(">>>>>> Saving pretrained_entity_embedding.npy <<<<<<")
 
     np.save(target_embedding, entity_embedding_transformed)
     

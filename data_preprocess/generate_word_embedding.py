@@ -43,7 +43,7 @@ def generate_word_embedding(pretrained_embedding, word2int_path, target_embeddin
 
     final_embedding = pd.concat([merged, missed_embedding]).sort_index()
 
-    print(">>>>>> Saving word_embedding.npy <<<<<<")
+    print(">>>>>> Saving pretrained_word_embedding.npy <<<<<<")
     np.save(target_embedding, final_embedding.values)
 
     print(
