@@ -26,3 +26,5 @@ python generate_word_embedding.py --pretrained_embedding ../../DATA/glove/glove.
                                     --target_embedding DATA_nabang1010/train/pretrained_word_embedding.npy
 
 
+
+python generate_entity_embedding.py 
