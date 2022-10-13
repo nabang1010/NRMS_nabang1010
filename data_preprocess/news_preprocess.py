@@ -1,20 +1,14 @@
-import pandas as pd
-from tqdm import tqdm
-import random
 import yaml
-import os
-import csv
-import json
+import pandas as pd
 from nltk.tokenize import word_tokenize
+import csv
+import os
+import json
+import argparse
 import swifter
-import numpy as np
-
-# ====================================================================================
 
 with open("config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
-
-# ====================================================================================
 
 
 def row_process(row, category2int, entity2int, word2int):
@@ -75,81 +69,10 @@ def row_process(row, category2int, entity2int, word2int):
     )
 
 
-# ====================================================================================
-
-
-def behaviors_file_process(source_behaviors, target_behaviors, user2int_path):
-    print("Processing", source_behaviors)
-    # Read behaviors.tsv
-    df_behaviors = pd.read_table(
-        source_behaviors,
-        header=None,
-        names=["impression_id", "user", "time", "clicked_news", "impressions"],
-    )
-
-    # Fill NaN with space
-    df_behaviors.clicked_news.fillna(" ", inplace=True)
-
-    # Split impressions to list
-    df_behaviors.impressions = df_behaviors.impressions.str.split()
-
-    # conver user_id to int ID
-    # U80234 --> 1
-    user2int = {}
-    for row in df_behaviors.itertuples(index=False):
-        if row.user not in user2int:
-            user2int[row.user] = len(user2int) + 1
-    # write user2int to file
-    pd.DataFrame(user2int.items(), columns=["user", "int"]).to_csv(
-        user2int_path, sep="\t", index=False
-    )
-
-    for row in df_behaviors.itertuples():
-        df_behaviors.at[row.Index, "user"] = user2int[row.user]
-    for row in tqdm(df_behaviors.itertuples(), desc="Balancing data"):
-        positive = iter([x for x in row.impressions if x.endswith("1")])
-        negative = [x for x in row.impressions if x.endswith("0")]
-        random.shuffle(negative)
-        negative = iter(negative)
-        pairs = []
-        try:
-            while True:
-                pair = [next(positive)]
-                for _ in range(config["BASE_CONFIG"]["negative_sampling_ratio"]):
-                    pair.append(next(negative))
-                pairs.append(pair)
-        except StopIteration:
-            pass
-        df_behaviors.at[row.Index, "impressions"] = pairs
-
-    df_behaviors = (
-        df_behaviors.explode("impressions")
-        .dropna(subset=["impressions"])
-        .reset_index(drop=True)
-    )
-    df_behaviors[["candidate_news", "clicked"]] = pd.DataFrame(
-        df_behaviors.impressions.map(
-            lambda x: (
-                " ".join([e.split("-")[0] for e in x]),
-                " ".join([e.split("-")[1] for e in x]),
-            )
-        ).tolist()
-    )
-    df_behaviors.to_csv(
-        target_behaviors,
-        sep="\t",
-        index=False,
-        columns=["user", "clicked_news", "candidate_news", "clicked"],
-    )
-
-
-# ====================================================================================
-
-
 def news_file_process(
     source_news, target_news, category2int_path, word2int_path, entity2int_path, mode
 ):
-
+    print("=======================================================================")
     print("Processing", source_news)
 
     df_news = pd.read_table(
@@ -167,11 +90,12 @@ def news_file_process(
             "abstract_entities",
         ],
     )
-    df_news.titles_entities.fillna("[]", inplace=True)
+    df_news.title_entities.fillna("[]", inplace=True)
     df_news.abstract_entities.fillna("[]", inplace=True)
     df_news.fillna(" ", inplace=True)
 
     if mode == "train":
+        print("----------------- Processing train data -----------------")
         category2int = {}
         word2int = {}
         word2freq = {}
@@ -227,71 +151,91 @@ def news_file_process(
             if v >= config["BASE_CONFIG"]["entity_freq_threshold"]:
                 entity2int[k] = len(entity2int) + 1
 
-        parsed_news = df_news.swifter.apply(row_process, axis=1)
+        parsed_news = df_news.swifter.apply(
+            row_process, axis=1, args=(category2int, entity2int, word2int)
+        )
+        print(">>>>>> Saving behaviors_preprocessed.tsv <<<<<<")
+        parsed_news.to_csv(target_news, sep="\t", index=False)
 
+        print(">>>>>> Saving category2int.tsv <<<<<<")
         pd.DataFrame(category2int.items(), columns=["category", "int"]).to_csv(
             category2int_path, sep="\t", index=False
         )
-
+        print(">>>>>> Saving word2int.tsv <<<<<<")
         pd.DataFrame(word2int.items(), columns=["word", "int"]).to_csv(
             word2int_path, sep="\t", index=False
         )
+        print(">>>>>> Saving entity2int.tsv <<<<<<")
         pd.DataFrame(entity2int.items(), columns=["entity", "int"]).to_csv(
             entity2int_path, sep="\t", index=False
         )
 
-    elif mode == "test":
+    elif mode == "test" or mode == "dev":
+        print("----------------- Processing", mode, "data -----------------")
         category2int = dict(pd.read_table(category2int_path).values.tolist())
 
         word2int = dict(pd.read_table(word2int_path, na_filter=False).values.tolist())
 
         entity2int = dict(pd.read_table(entity2int_path).values.tolist())
 
-        parsed_news = df_news.swifter.apply(row_process, axis=1)
+        parsed_news = df_news.swifter.apply(
+            row_process, axis=1, args=(category2int, entity2int, word2int)
+        )
 
+        print(">>>>>> Saving news_preprocessed.tsv <<<<<<")
         parsed_news.to_csv(target_news, sep="\t", index=False)
 
     else:
         raise ValueError("mode must be train or test")
 
 
-# ====================================================================================
-
-
-def generate_embedding(source_embedding, targe_embedding, word2int_path):
-
-    print("Generating embedding")
-
-    word2int = dict(pd.read_table(word2int_path, na_filter=False).values.tolist())
-
-
-# ====================================================================================
-
 if __name__ == "__main__":
-    DATA_RAW = "/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/"
-    DATA_DIR = "./DATA_nabang1010"
+    # current_path = os.path.dirname(os.path.abspath(__file__))
 
-    train_dir = "train"
-    val_dir = "val"
-    test_dir = "test"
-
-    source_behaviors = os.path.join(DATA_RAW, "behaviors.tsv")
-    target_behaviors = os.path.join(DATA_DIR, train_dir, "behaviors_preprocessed.tsv")
-    user2int_path = os.path.join(DATA_DIR, train_dir, "user2int.tsv")
-
-    source_news = os.path.join(DATA_RAW, "news.tsv")
-    target_news = os.path.join(DATA_DIR, train_dir, "news_preprocessed.tsv")
-    category2int_path = os.path.join(DATA_DIR, train_dir, "category2int.tsv")
-    word2int_path = os.path.join(DATA_DIR, train_dir, "word2int.tsv")
-    entity2int_path = os.path.join(DATA_DIR, train_dir, "entity2int.tsv")
-
-    behaviors_file_process(source_behaviors, target_behaviors, user2int_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--source_news",
+        type=str,
+        default="/workspace/nabang1010/LBA_NLP/Recommendation_System/DATA/dev_small/news.tsv",
+        help="source news.tsv file path",
+    )
+    parser.add_argument(
+        "--target_news",
+        type=str,
+        default="train/news_preprocessed.tsv",
+        help="write target news_preprocessed.tsv file path",
+    )
+    parser.add_argument(
+        "--category2int_path",
+        type=str,
+        default="train/category2int.tsv",
+        help="write category2int file path",
+    )
+    parser.add_argument(
+        "--word2int_path",
+        type=str,
+        default="train/word2int.tsv",
+        help="write word2int.tsv file path",
+    )
+    parser.add_argument(
+        "--entity2int_path",
+        type=str,
+        default="train/entity2int.tsv",
+        help="write entity2int.tsv file path",
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="train",
+        help="mode: train, test or dev",
+    )
+    args = parser.parse_args()
 
     news_file_process(
-        source_news,
-        target_news,
-        category2int_path,
-        word2int_path,
-        entity2int_path,
-        mode="train",
+        os.path.join(args.source_news),
+        os.path.join(args.target_news),
+        os.path.join(args.category2int_path),
+        os.path.join(args.word2int_path),
+        os.path.join(args.entity2int_path),
+        args.mode,
     )
